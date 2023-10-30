@@ -3,7 +3,6 @@ package mypackage;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -17,8 +16,8 @@ public class Server {
 
         Javalin app = Javalin.create(
             config -> {
-                //config.staticFiles.add("./public");
-                config.staticFiles.add(sf -> {
+                //config.staticFiles.add("./public");   //from Javalin 5.6.3
+                config.addStaticFiles(sf -> {   //from Javalin 4.6.8
                     sf.hostedPath = "/";
                     sf.directory = "./public";
                     sf.location = Location.EXTERNAL;
@@ -98,7 +97,7 @@ public class Server {
     }
     
     private static void saveDomainsToFile(String domain) {
-        try (FileWriter writer = new FileWriter("./public/domains.txt", StandardCharsets.UTF_8, false)) {
+        try (FileWriter writer = new FileWriter("./public/domains.txt", false)) {  // from java 17: new FileWriter("./public/domains.txt", StandardCharsets.UTF_8, false))
             writer.write(domain);
         } catch (IOException e) {
             // Handle file write errors
