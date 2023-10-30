@@ -4,7 +4,9 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class IPRangeCalculator {
 
@@ -49,8 +51,8 @@ public class IPRangeCalculator {
             InetAddress endIP = Inet4Address.getByAddress(endIPBytes);
 
             System.out.println("IP-range:");
-            System.out.println("Start IP: " + startIP.getHostAddress() + " name: " + InetAddressWithTimeout.getHostName(startIP.getHostAddress()));
-            System.out.println("End IP: " + endIP.getHostAddress() + " name: " + InetAddressWithTimeout.getHostName(endIP.getHostAddress()));
+            System.out.println("Start IP: " + startIP.getHostAddress() );
+            System.out.println("End IP: " + endIP.getHostAddress() );
 
             //generateAllIPAddressesInRange(startIP, endIP);
             
@@ -95,26 +97,17 @@ public class IPRangeCalculator {
         }
     }
 
-    // 
-    public static List<String> getURIList(List<InetAddress> ipRange){
-        List<String> arrayStrings = new ArrayList<>();
-        //String[] arrayStrings = new String[ ipRange.size() ];  // more, then needed
-        int i = 0;
-        
+    public static Map<String, InetAddress> getURIMap(List<InetAddress> ipRange){
+        Map<String, InetAddress> addrMap = new HashMap<>();
+        int i = 1;
+
         for( InetAddress ip : ipRange ){
-            
-            String ipString = ip.getHostAddress();
-            String ipHostString = InetAddressWithTimeout.getHostName(ipString);
-            if( !ipString.equals(ipHostString) ){ // не добавлять в массив если имя == адресу ip.getHostName()
-                String url = "https://" + ipHostString;
-                if( !arrayStrings.contains( url ) ){  // проверяем на дубликаты
-                    arrayStrings.add( url );
-                    System.out.println(i + " Address: " + arrayStrings.get(i));
-                    i++;
-                }
-            }
+            String url = "https://example" + String.valueOf(i) + ".ex";
+            addrMap.put(url, ip);
+            i++;
+            System.out.println("Added: "+ url +" as "+ ip.getHostAddress());
         }
 
-        return arrayStrings;
+        return addrMap;
     }
 }

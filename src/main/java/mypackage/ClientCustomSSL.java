@@ -1,9 +1,11 @@
 package mypackage;
 
+import java.net.InetAddress;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -18,6 +20,7 @@ import javax.net.ssl.SSLSession;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.TlsConfig;
+import org.apache.hc.client5.http.impl.InMemoryDnsResolver;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
@@ -34,7 +37,7 @@ import org.apache.hc.core5.util.Timeout;
 
 public class ClientCustomSSL {
     
-    public static StringBuffer performGet( List<String> args, int numThreads ) throws Exception {
+    public static StringBuffer performGet( Map<String, InetAddress> args, int numThreads ) throws Exception {
         StringBuffer resultSB = new StringBuffer();
 
         // Trust standard CA and those trusted by our custom strategy
@@ -58,9 +61,16 @@ public class ClientCustomSSL {
                 .setConnectTimeout(Timeout.ofSeconds(5))
                 .setSocketTimeout(Timeout.ofSeconds(5))
                 .build();
+
+        final InMemoryDnsResolver dr = new InMemoryDnsResolver();
+            for(Map.Entry<String, InetAddress> entry : args.entrySet()){
+                dr.add( entry.getKey().substring(8), entry.getValue() );
+            }
+
         // Allow every version of TLS protocol
         final HttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create()
                 .setSSLSocketFactory(sslSocketFactory)
+                .setDnsResolver(dr)
                 .setDefaultConnectionConfig(cc) //try to manage timeouts
                 .setDefaultTlsConfig(TlsConfig.custom()
                         .setHandshakeTimeout(Timeout.ofSeconds(5))
@@ -80,9 +90,10 @@ public class ClientCustomSSL {
 
             // create a thread for each URI
             List<GetThread> threads = new ArrayList<>();
+            List<String> uriList = new ArrayList<>( args.keySet() );
 
             for (int i = 0; i < args.size(); i++) {
-                HttpGet httpget = new HttpGet(args.get(i));
+                HttpGet httpget = new HttpGet( uriList.get(i) );
                 HttpClientContext clientContext = HttpClientContext.create();
                 threads.add( new GetThread(httpclient, clientContext, httpget, i + 1, resultSB) );
             }

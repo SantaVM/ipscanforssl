@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 
 import io.javalin.Javalin;
 import io.javalin.http.staticfiles.Location;
@@ -58,13 +59,17 @@ public class Server {
 
             StringBuffer resultSBuffer = new StringBuffer();
 
+            Map<String, InetAddress> ipRangeMap = IPRangeCalculator.getURIMap(ipRangeList);
             try{
-                resultSBuffer = ClientCustomSSL.performGet( IPRangeCalculator.getURIList( ipRangeList ), numThreads );
+                resultSBuffer = ClientCustomSSL.performGet( ipRangeMap, numThreads );
                 System.out.println(resultSBuffer.toString());
             }catch(Exception e){
                 e.printStackTrace();
             }
 
+            if(resultSBuffer.length() == 0){
+                resultSBuffer.append("No Domains found!\n");
+            }
             resultSBuffer.append("Start ip: " + startIP + ", mask: " + mask + ", Num threads: " + numThreads + " send file: " + sendFile);
             System.out.println("Start ip: " + startIP + ", mask: " + mask + ", Num threads: " + numThreads + " send file: " + sendFile);
 
