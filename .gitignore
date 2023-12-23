@@ -1,2 +1,4 @@
 /.vscode
 /target
+*.pdf
+public/domains.txt
